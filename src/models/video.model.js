@@ -12,15 +12,15 @@ const videoSchema = new Schema(
             required: true
         },
         title: {
-            type: String, // Cloudinary
+            type: String, 
             required: true
         },
         description: {
-            type: String, // Cloudinary
+            type: String, 
             required: true
         },
         duration: {
-            type: Number, // Cloudinary
+            type: Number, 
             required: true
         },
         views: {
