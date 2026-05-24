@@ -150,8 +150,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
+            $unset: {
+                refreshToken: 1
             }
         },
         {
@@ -414,12 +414,12 @@ const getWatchHistory = asyncHandler(async (req, res) => {
         {
             $lookup: {
                 from: "Video",
-                localField: "getWatchHistory",
+                localField: "watchHistory",
                 foreignField: "_id",
                 as: "watchHistory",
                 pipeline: [
                     {
-                        $lookup:{
+                        $lookup: {
                             from: "users",
                             localField: "owner",
                             foreignField: "_id",
@@ -427,7 +427,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                             pipeline: [
                                 {
                                     $project: {
-                                        fullname:1,
+                                        fullname: 1,
                                         username: 1,
                                         avatar: 1,
                                     }
@@ -436,8 +436,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                         }
                     },
                     {
-                        $addFields:{
-                            owner:{
+                        $addFields: {
+                            owner: {
                                 $first: "$owner"
                             }
                         }
@@ -448,14 +448,14 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     ])
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            user[0].watchHistory,
-            "watch History fetched successfully"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user[0].watchHistory,
+                "watch History fetched successfully"
+            )
         )
-    )
 })
 
 
