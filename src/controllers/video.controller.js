@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
+import mongoose from "mongoose"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -78,7 +79,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     const video = await uploadOnCloudinary(VideoFilePath)
     const thumbnail = await uploadOnCloudinary(ThumbnailFilePath)
 
-    if(!(video && thumbnail)){
+    if (!(video && thumbnail)) {
         throw new ApiError(400, "video and thumbnail is required")
     }
 
@@ -92,15 +93,81 @@ const publishAVideo = asyncHandler(async (req, res) => {
     })
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200,VideoUploaded, "Video and thumbnail successfully uploaded")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(200, VideoUploaded, "Video and thumbnail successfully uploaded")
+        )
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: get video by id
+
+    // Home Page Pe Video Dikhi
+    // user ne click kiya
+    // us video ka page khula
+    // poori video + details dikhi
+    //   video ka view +1
+    //   watchHistory mein add hogi video
+    //   Owner ki details bhi aaengi video mein
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid Video id")
+    }
+
+    const VideoPipeline = [
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            fullname: 1,
+                            avatar: 1,
+                        }
+                    }
+                ]
+            }
+        }
+
+    ]
+
+    const Views = await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $inc: { views: 1 }
+        },
+        { new: true }
+    )
+
+    const UpdatedHistory = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $addToSet: { watchHistory: videoId }
+        }
+    )
+
+    const video = await Video.aggregate(VideoPipeline)
+
+    if (!video[0]) {
+        throw new ApiError(400, "Video does not exist")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, video[0], "Video fetched successfully")
+    )
+
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
