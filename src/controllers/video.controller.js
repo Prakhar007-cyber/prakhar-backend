@@ -163,10 +163,10 @@ const getVideoById = asyncHandler(async (req, res) => {
     }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, video[0], "Video fetched successfully")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(200, video[0], "Video fetched successfully")
+        )
 
 })
 
@@ -174,6 +174,54 @@ const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: update video details like title, description, thumbnail
 
+    //     Jab user apni uploaded video edit karta hai:
+
+    // Title change karna
+    // Description change karna
+    // Thumbnail change karna
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid Video id")
+    }
+
+    const { title, description } = req.body
+    const thumbnail = req.file?.path
+
+    if (!(title || description || thumbnail)) {
+        throw new ApiError(400, "At least one field should be updated among Title, Description, Thumbnail")
+    }
+
+    const video = await Video.findById(videoId)
+
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(400, "Owner id and User id does not match")
+    }
+
+    let newThumbnail
+    if (thumbnail) {
+        newThumbnail = await uploadOnCloudinary(thumbnail)
+        if (!newThumbnail) {
+            throw new ApiError(400, "Thumbnail upload failed")
+        }
+    }
+
+    const UpdatedFields = await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $set: {
+                ...(title && { title }),
+                ...(description && { description }),
+                ...(newThumbnail && { thumbnail: newThumbnail.url })
+            }
+        },
+        { new: true }
+    )
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, UpdatedFields, "Update successfull")
+        )
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
