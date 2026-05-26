@@ -4,7 +4,7 @@ import { User } from "../models/user.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
 import mongoose from "mongoose"
 
@@ -227,10 +227,72 @@ const updateVideo = asyncHandler(async (req, res) => {
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: delete video
+
+    // Video database se delete karni hai
+    // Cloudinary se bhi delete karni hai — dono jagah se!
+    // Sirf owner delete kar sakta hai
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video id")
+    }
+
+    const video = await Video.findById(videoId)
+
+    if (!video) {
+        throw new ApiError(400, "Video does not exist")
+    }
+
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(400, "Owner id and User id does not match")
+    }
+
+    const DeleteVideo = await Video.findByIdAndDelete(videoId)
+    const DeleteFromCloudinary = await deleteFromCloudinary(video.videoFile)
+
+    if (!DeleteVideo) {
+        throw new ApiError(400, "Video not deleted")
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, {}, "Video deleted successfully")
+        )
+
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    // YouTube pe jab tum video ko Private ya Public karte ho —
+    // wahi kaam karta hai yeh controller!
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video id")
+    }
+
+    const video = await Video.findById(videoId)
+
+    if (!video) {
+        throw new ApiError(400, "Video does not exist")
+    }
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(400, "Owner id and User id does not match")
+    }
+
+    const Publish = await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $set: {
+                isPublished: !video.isPublished
+            }
+        },
+        {new: true}
+    )
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,Publish,"Publish status toggled successfully")
+    )
 })
 
 export {
