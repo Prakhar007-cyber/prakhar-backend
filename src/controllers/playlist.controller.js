@@ -77,7 +77,6 @@ const getPlaylistById = asyncHandler(async (req, res) => {
                 pipeline: [
                     {
                         $project: {
-                            videoId: 1,
                             title: 1,
                             description: 1,
                         }
@@ -157,12 +156,68 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
 const deletePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
     // TODO: delete playlist
+
+    if (!isValidObjectId(playlistId)) {
+        throw new ApiError(400, "Invalid playlist Id")
+    }
+
+    const playlist = await Playlist.findById(playlistId)
+    if (!playlist) {
+        throw new ApiError(400, "playlist does not exist")
+    }
+    if (!(playlist.owner.toString() === req.user._id.toString())) {
+        throw new ApiError(400, "Playlist owner and user id does not match")
+    }
+
+    const deletePlaylist = await Playlist.findByIdAndDelete(playlistId)
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, {}, "Playlist Deleted Successfully")
+        )
 })
 
 const updatePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
     const { name, description } = req.body
     //TODO: update playlist
+
+
+    if (!isValidObjectId(playlistId)) {
+        throw new ApiError(400, "Invalid playlist id")
+    }
+
+    if (!(name || description)) {
+        throw new ApiError(400, "At least one field should be updated among name, Description")
+    }
+
+    const playlist = await Playlist.findById(playlistId)
+
+    if (!playlist) {
+        throw new ApiError(400, "Playlist does not exist")
+    }
+
+    if (playlist.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(400, "playlist id and User id does not match")
+    }
+
+    const UpdatedFields = await Playlist.findByIdAndUpdate(
+        playlistId,
+        {
+            $set: {
+                ...(name && { name }),
+                ...(description && { description }),
+            }
+        },
+        { new: true }
+    )
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, UpdatedFields, "Update successfull")
+        )
 })
 
 export {
