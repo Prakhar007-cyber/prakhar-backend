@@ -6,7 +6,6 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
-import mongoose from "mongoose"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
