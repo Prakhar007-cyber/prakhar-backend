@@ -8,7 +8,6 @@ import mongoose from "mongoose"
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: toggle like on video
 
     // toggleVideoLike ka kaam 
     // User ne video like kiya → Like database mein add karo
@@ -47,7 +46,6 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
     const { commentId } = req.params
-    //TODO: toggle like on comment
 
     if (!isValidObjectId(commentId)) {
         throw new ApiError(400, "Invalid comment Id")
@@ -82,8 +80,6 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
     const { tweetId } = req.params
-    //TODO: toggle like on tweet
-
     if (!isValidObjectId(tweetId)) {
         throw new ApiError(400, "Invalid tweet Id")
     }
@@ -116,9 +112,8 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 )
 
 const getLikedVideos = asyncHandler(async (req, res) => {
-    //TODO: get all liked videos
 
-    // Iska kaam — user ne jo saari videos like ki hain woh fetch karo!
+    // Iska kaam — user ne jo saari videos like ki hain woh fetch karna
 
     const pipeline = [
         {

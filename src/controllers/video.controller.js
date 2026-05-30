@@ -11,7 +11,6 @@ import mongoose from "mongoose"
 
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    //TODO: get all videos based on query, sort, pagination
 
     // User home page pe aya -> sabhi videos dikhao
     // User ne "javascript tutorial" search kiya -> filtered videos dikhao
@@ -56,7 +55,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description } = req.body
-    // TODO: get video, upload to cloudinary, create video
 
     //    Jab koi user YouTube pe video upload karta hai:
 
@@ -101,7 +99,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: get video by id
 
     // Home Page Pe Video Dikhi
     // user ne click kiya
@@ -172,7 +169,6 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: update video details like title, description, thumbnail
 
     //     Jab user apni uploaded video edit karta hai:
 
@@ -226,7 +222,6 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: delete video
 
     // Video database se delete karni hai
     // Cloudinary se bhi delete karni hai — dono jagah se!
